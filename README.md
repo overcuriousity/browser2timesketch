@@ -1,87 +1,60 @@
 # Browser History to Timesketch Converter
 
-Converts browser history from the three major browser engines to Timesketch-compatible CSV format.
+Converts browser history from Firefox, Chrome, Safari, and all Chromium-based browsers to Timesketch-compatible CSV format.
 
-## Supported Browser Engines
+## Requirements
 
-- **Gecko** - Firefox and derivatives (Waterfox, LibreWolf, etc.)
-- **Chromium** - All Chromium-based browsers (Chrome, Edge, Brave, Opera, Vivaldi, Arc, etc.)
-- **WebKit** - Safari
-
-## Why Only Three Types?
-
-All Chromium-based browsers (Chrome, Edge, Brave, Opera, Vivaldi, etc.) use **identical database schemas**. There's no need to handle them differently - they all use the same History database format with the same table structures and timestamp formats. The only difference is the file location, which you provide as input.
-
-Similarly, all Gecko-based browsers (Firefox forks) use the same places.sqlite format.
+- Python 3.6+
+- No external dependencies (standard library only)
 
 ## Usage
 
+### Simple (Auto-detect browser type)
 ```bash
-python browser2timesketch.py -b <browser_engine> -i <database_path> -o <output.csv>
+python browser2timesketch.py -i <database_path>
 ```
 
-### Arguments
+### With Options
+```bash
+python browser2timesketch.py [OPTIONS] -i <database_path>
+```
 
-- `-b, --browser`: Browser engine type
-  - `firefox` or `gecko` - For Firefox and Firefox-based browsers
-  - `chromium` - For all Chromium-based browsers
-  - `safari` or `webkit` - For Safari
-- `-i, --input`: Path to browser history database file
-- `-o, --output`: Output CSV file path (optional, default: browser_history_timesketch.csv)
-- `--browser-name`: Custom browser name for the data_type field (optional)
+## Command-Line Arguments
 
-## Database File Locations
+| Argument | Required | Description |
+|----------|----------|-------------|
+| `-i`, `--input` | Yes | Path to browser history database file |
+| `-b`, `--browser` | No | Browser type: `firefox`, `chromium`, `safari`, or `auto` (default: auto) |
+| `-o`, `--output` | No | Output CSV file path (default: auto-generated) |
+| `--browser-name` | No | Custom browser name for data_type field (e.g., "Brave", "Edge") |
 
-### How to Find Your Profile Path
+## Finding Browser Database Files
 
-#### Gecko / Firefox
+### Firefox (all platforms)
+
 1. Open Firefox
-2. Type `about:support` in the address bar and press Enter
+2. Type `about:support` in address bar
 3. Look for **Profile Folder** or **Profile Directory**
-4. Click "Open Folder" / "Open Directory" button, or note the path shown
-5. The `places.sqlite` file is in this directory
+4. Click **Open Folder** button
+5. Find `places.sqlite` in that folder
 
-Alternative: Type `about:profiles` to see all profiles and their locations.
-
-#### Chromium (Chrome/Edge/Brave/Opera/Vivaldi/etc.)
-1. Open your Chromium-based browser
-2. Type `chrome://version/` in the address bar and press Enter
-3. Look for **Profile Path** - this shows the full path to your profile directory
-4. The `History` file (no extension) is in this directory
-
-Note: For browsers based on Chromium, use the same URL even if it's not Chrome:
-- Edge: `edge://version/`
-- Brave: `brave://version/`
-- Opera: `opera://about/`
-- Vivaldi: `vivaldi://about/`
-
-#### WebKit / Safari
-Safari's history database is always at the same location on macOS:
-`~/Library/Safari/History.db`
-
-To view in Finder:
-1. Open Finder
-2. Press `Cmd + Shift + G` (Go to Folder)
-3. Type `~/Library/Safari/`
-4. Press Enter
-
-### Standard Profile Locations
-
-If you prefer to navigate directly to the standard locations:
-
-### Gecko / Firefox
-
-**Database file:** `places.sqlite`
-
+**Standard locations:**
 - **Linux:** `~/.mozilla/firefox/<profile>/places.sqlite`
 - **macOS:** `~/Library/Application Support/Firefox/Profiles/<profile>/places.sqlite`
 - **Windows:** `%APPDATA%\Mozilla\Firefox\Profiles\<profile>\places.sqlite`
 
-### Chromium (Chrome/Edge/Brave/Opera/Vivaldi/etc.)
+### Chrome, Edge, Brave, Opera, Vivaldi (all Chromium browsers)
 
-**Database file:** `History` (no file extension)
+1. Open your browser
+2. Type `chrome://version/` in address bar
+   - For Edge: `edge://version/`
+   - For Brave: `brave://version/`
+   - For Opera: `opera://about/`
+   - For Vivaldi: `vivaldi://about/`
+3. Look for **Profile Path**
+4. Find `History` file (no extension) in that folder
 
-All Chromium browsers use the same database format. Only the location differs:
+**Standard locations:**
 
 **Google Chrome:**
 - **Linux:** `~/.config/google-chrome/Default/History`
@@ -108,124 +81,38 @@ All Chromium browsers use the same database format. Only the location differs:
 - **macOS:** `~/Library/Application Support/Vivaldi/Default/History`
 - **Windows:** `%LOCALAPPDATA%\Vivaldi\User Data\Default\History`
 
-### WebKit / Safari
+### Safari (macOS only)
 
-**Database file:** `History.db`
+**Location:** `~/Library/Safari/History.db`
 
-- **macOS:** `~/Library/Safari/History.db`
+**To open in Finder:**
+1. Press `Cmd + Shift + G`
+2. Type `~/Library/Safari/`
+3. Press Enter
 
 ## Examples
 
-### Firefox (or any Gecko-based browser)
+### Auto-detect (simplest)
 ```bash
-# Linux
-python browser2timesketch.py -b firefox -i ~/.mozilla/firefox/xyz123.default/places.sqlite -o firefox_history.csv
-
-# macOS
-python browser2timesketch.py -b gecko -i "~/Library/Application Support/Firefox/Profiles/xyz123.default/places.sqlite" -o firefox_history.csv
-
-# Windows
-python browser2timesketch.py -b firefox -i "C:\Users\YourUser\AppData\Roaming\Mozilla\Firefox\Profiles\xyz123.default\places.sqlite" -o firefox_history.csv
+python browser2timesketch.py -i ~/.mozilla/firefox/abc123.default/places.sqlite
+python browser2timesketch.py -i ~/.config/google-chrome/Default/History
+python browser2timesketch.py -i ~/Library/Safari/History.db
 ```
 
-### Chrome (or any Chromium-based browser)
+### Specify browser type
 ```bash
-# Linux - Chrome
-python browser2timesketch.py -b chromium -i ~/.config/google-chrome/Default/History -o chrome_history.csv
-
-# macOS - Chrome
-python browser2timesketch.py -b chromium -i "~/Library/Application Support/Google/Chrome/Default/History" -o chrome_history.csv
-
-# Windows - Chrome
-python browser2timesketch.py -b chromium -i "C:\Users\YourUser\AppData\Local\Google\Chrome\User Data\Default\History" -o chrome_history.csv
-
-# Linux - Brave with custom label
-python browser2timesketch.py -b chromium --browser-name "Brave" -i ~/.config/BraveSoftware/Brave-Browser/Default/History -o brave_history.csv
-
-# Windows - Edge
-python browser2timesketch.py -b chromium -i "C:\Users\YourUser\AppData\Local\Microsoft\Edge\User Data\Default\History" -o edge_history.csv
+python browser2timesketch.py -b firefox -i places.sqlite -o firefox.csv
+python browser2timesketch.py -b chromium -i History -o chrome.csv
+python browser2timesketch.py -b safari -i History.db -o safari.csv
 ```
 
-### Safari
+### With custom browser name
 ```bash
-# macOS
-python browser2timesketch.py -b safari -i ~/Library/Safari/History.db -o safari_history.csv
-
-# Or using the webkit alias
-python browser2timesketch.py -b webkit -i ~/Library/Safari/History.db -o safari_history.csv
+python browser2timesketch.py --browser-name "Brave" -i ~/.config/BraveSoftware/Brave-Browser/Default/History
 ```
 
-## Output Format
+## Notes
 
-The script generates a CSV file with Timesketch-compatible fields:
-
-| Field | Description | All Browsers |
-|-------|-------------|--------------|
-| `timestamp` | Unix timestamp in microseconds | ✓ |
-| `datetime` | ISO 8601 formatted datetime | ✓ |
-| `timestamp_desc` | Description of timestamp | ✓ |
-| `message` | Human-readable event description | ✓ |
-| `url` | The visited URL | ✓ |
-| `title` | Page title | ✓ |
-| `data_type` | Source identifier | ✓ |
-| `visit_type` | Type of visit | Gecko, Chromium |
-| `visit_duration_us` | Visit duration in microseconds | Chromium only |
-| `total_visits` | Total visits to this URL | Chromium only |
-| `typed_count` | Times URL was typed | Chromium only |
-
-## Browser Engine Details
-
-### Timestamp Formats
-
-Each browser engine uses a different timestamp format:
-
-- **Gecko (Firefox):** Microseconds since Unix epoch (1970-01-01 00:00:00 UTC)
-- **Chromium:** Microseconds since Windows epoch (1601-01-01 00:00:00 UTC)
-- **WebKit (Safari):** Seconds since Cocoa epoch (2001-01-01 00:00:00 UTC)
-
-The script automatically converts all timestamps to Unix microseconds for Timesketch.
-
-### Database Schemas
-
-- **Gecko:** Uses `moz_historyvisits` and `moz_places` tables in `places.sqlite`
-- **Chromium:** Uses `visits` and `urls` tables in `History` database
-- **WebKit:** Uses `history_visits` and `history_items` tables in `History.db`
-
-## Important Notes
-
-1. **Close the browser** before running the script to avoid database lock errors
-2. **Copy the database file** to a temporary location if you want to avoid potential issues
-3. **Handle output carefully** - the CSV contains your complete browsing history
-4. Different browsers may have multiple profiles - make sure you're pointing to the correct profile directory
-5. On Windows, use quotes around paths that contain spaces
-
-## Troubleshooting
-
-### Database is locked
-- Close the browser completely
-- Copy the database file to a temporary location and run the script on the copy
-
-### File not found
-- Verify the profile directory name (the random string like `xyz123.default`)
-- Check that the browser has been used and has history
-- On macOS, use tab completion or check the exact path
-
-### Permission denied
-- Run with appropriate permissions
-- On Linux/macOS, check file permissions with `ls -l`
-- On Windows, run as Administrator if needed
-
-## Requirements
-
-- Python 3.6 or higher
-- No external dependencies (uses only standard library)
-
-## Privacy and Security
-
-This tool exports your complete browsing history. The output file contains:
-- All visited URLs
-- Page titles
-- Visit timestamps
-- Visit types and patterns
-
-Handle the output files appropriately and delete them when no longer needed.
+- Close your browser before running to avoid database locks (or the script will use read-only mode)
+- Output contains complete browsing history - handle securely
+- On Windows, use quotes around paths with spaces
