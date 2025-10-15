@@ -10,7 +10,7 @@ import sqlite3
 import csv
 import argparse
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Tuple, Optional, Dict, Any, List
 
@@ -132,14 +132,14 @@ def validate_timestamp(unix_microseconds: int, browser_type: str) -> None:
     max_seconds = max_date.timestamp()
     
     if timestamp_seconds < min_seconds:
-        dt = datetime.utcfromtimestamp(timestamp_seconds)
+        dt = datetime.fromtimestamp(timestamp_seconds, tz=timezone.utc)
         raise TimestampValidationError(
             f"Timestamp appears too old: {dt.strftime('%Y-%m-%d %H:%M:%S')} (before 1990). "
             f"This may indicate a timestamp conversion error for {browser_type}."
         )
     
     if timestamp_seconds > max_seconds:
-        dt = datetime.utcfromtimestamp(timestamp_seconds)
+        dt = datetime.fromtimestamp(timestamp_seconds, tz=timezone.utc)
         raise TimestampValidationError(
             f"Timestamp appears to be in the future: {dt.strftime('%Y-%m-%d %H:%M:%S')} (after 2040). "
             f"This may indicate a timestamp conversion error for {browser_type}."
@@ -165,7 +165,7 @@ def convert_gecko_timestamp(gecko_timestamp: Optional[int]) -> Tuple[int, str]:
     
     # Convert microseconds to seconds
     timestamp_seconds = gecko_timestamp / 1000000
-    dt = datetime.utcfromtimestamp(timestamp_seconds)
+    dt = datetime.fromtimestamp(timestamp_seconds, tz=timezone.utc)
     return gecko_timestamp, dt.strftime('%Y-%m-%dT%H:%M:%S+00:00')
 
 
@@ -197,7 +197,7 @@ def convert_chromium_timestamp(chromium_timestamp: Optional[int]) -> Tuple[int, 
     # Validate
     validate_timestamp(unix_microseconds, "Chromium")
     
-    dt = datetime.utcfromtimestamp(timestamp_seconds)
+    dt = datetime.fromtimestamp(timestamp_seconds, tz=timezone.utc)
     return unix_microseconds, dt.strftime('%Y-%m-%dT%H:%M:%S+00:00')
 
 
@@ -229,7 +229,7 @@ def convert_webkit_timestamp(webkit_timestamp: Optional[float]) -> Tuple[int, st
     # Validate
     validate_timestamp(unix_microseconds, "WebKit/Safari")
     
-    dt = datetime.utcfromtimestamp(timestamp_seconds)
+    dt = datetime.fromtimestamp(timestamp_seconds, tz=timezone.utc)
     return unix_microseconds, dt.strftime('%Y-%m-%dT%H:%M:%S+00:00')
 
 
